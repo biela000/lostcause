@@ -1,0 +1,8 @@
+.map {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    width: 800px;
+    height: 800px;
+    border: 1px solid green;
+    position: relative;
+}
