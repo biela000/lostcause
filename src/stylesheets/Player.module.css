@@ -1,0 +1,14 @@
+.player {
+    position: absolute;
+    width: calc(800px / 16);
+    height: calc(800px / 16);
+    top: calc(800px / 16);
+    left: calc(800px / 16);
+    background-color: red;
+    transition: top 0.2s, left 0.2s;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
