@@ -1,6 +1,7 @@
-import React, {ReactElement, useEffect, useState} from 'react';
+import React, {ReactElement, useEffect, useState, useContext} from 'react';
 import labyrinth, {BlockObject} from '../utils/Labyrinth';
-import Settings from "../utils/Settings";
+import {SettingsContext} from "../context/SettingsContext";
+import DuckUtils from "../utils/Duck";
 import Block from './Block';
 import Duck from "./Duck";
 import styles from '../stylesheets/Map.module.css';
@@ -8,10 +9,13 @@ import Position from "../types/Position";
 import BlockType from "../types/BlockType";
 
 export default function Map(): ReactElement {
+    const settings = useContext(SettingsContext);
     const [duckPosition, setDuckPosition] = useState({
-        x: Settings.mapSettings.blockSize,
-        y: Settings.mapSettings.blockSize
-    });
+        x: settings.mapSettings.blockSize,
+        y: settings.mapSettings.blockSize,
+        lastX: 0,
+        lastY: 0
+    } as Position);
 
     const wallPositions: Position[] = labyrinth
         .filter((block: BlockObject) => block.blockType === BlockType.Wall)
@@ -20,8 +24,8 @@ export default function Map(): ReactElement {
             const xIndex: number = +block.id.slice(block.id.indexOf('-') + 1);
 
             return {
-                x: xIndex * Settings.mapSettings.blockSize,
-                y: yIndex * Settings.mapSettings.blockSize
+                x: xIndex * settings.mapSettings.blockSize,
+                y: yIndex * settings.mapSettings.blockSize
             }
         });
 
@@ -33,24 +37,10 @@ export default function Map(): ReactElement {
 
     useEffect(() => {
         setInterval(() => {
-            setDuckPosition((prevPosition: Position): Position => {
-                const possibleDirections: Position[] = [
-                    { x: prevPosition.x + Settings.mapSettings.blockSize, y: prevPosition.y },
-                    { x: prevPosition.x - Settings.mapSettings.blockSize, y: prevPosition.y },
-                    { x: prevPosition.x, y: prevPosition.y + Settings.mapSettings.blockSize },
-                    { x: prevPosition.x, y: prevPosition.y - Settings.mapSettings.blockSize }
-                ];
-
-                const possibleDirectionsFiltered: Position[] = possibleDirections.filter((direction: Position) => {
-                    return !wallPositions.some((wallPosition: Position) => {
-                        return wallPosition.x === direction.x && wallPosition.y === direction.y;
-                    });
-                });
-
-                const randomIndex: number = Math.floor(Math.random() * possibleDirectionsFiltered.length);
-                return possibleDirectionsFiltered[randomIndex];
-            });
-        }, Settings.duckSettings.duckTimeToPassBlock);
+            setDuckPosition((prevPosition: Position): Position =>
+                DuckUtils.calculateNextDuckPosition(settings, prevPosition, wallPositions)
+            );
+        }, settings.duckSettings.duckTimeToPassBlock);
     }, []);
 
     return (
