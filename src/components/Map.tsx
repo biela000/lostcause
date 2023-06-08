@@ -1,4 +1,4 @@
-import React, {ReactElement, useEffect, useState, useContext} from 'react';
+import React, {ReactElement, useEffect, useState, useContext, useMemo} from 'react';
 import labyrinth, {BlockObject} from '../utils/Labyrinth';
 import {SettingsContext} from "../context/SettingsContext";
 import DuckUtils from "../utils/Duck";
@@ -17,17 +17,21 @@ export default function Map(): ReactElement {
         lastY: 0
     } as Position);
 
-    const wallPositions: Position[] = labyrinth
-        .filter((block: BlockObject) => block.blockType === BlockType.Wall)
-        .map((block: BlockObject) => {
-            const yIndex: number = +block.id.slice(0, block.id.indexOf('-'));
-            const xIndex: number = +block.id.slice(block.id.indexOf('-') + 1);
+    const wallPositions: Position[] = useMemo(() => {
+        return (
+            labyrinth
+                .filter((block: BlockObject) => block.blockType === BlockType.Wall)
+                .map((block: BlockObject) => {
+                    const yIndex: number = +block.id.slice(0, block.id.indexOf('-'));
+                    const xIndex: number = +block.id.slice(block.id.indexOf('-') + 1);
 
-            return {
-                x: xIndex * settings.mapSettings.blockSize,
-                y: yIndex * settings.mapSettings.blockSize
-            }
-        });
+                    return {
+                        x: xIndex * settings.mapSettings.blockSize,
+                        y: yIndex * settings.mapSettings.blockSize
+                    }
+                })
+        );
+    }, [settings.mapSettings.blockSize]);
 
     const blockElements: ReactElement[] = labyrinth.map((block: BlockObject) => {
         return (
@@ -41,7 +45,7 @@ export default function Map(): ReactElement {
                 DuckUtils.calculateNextDuckPosition(settings, prevPosition, wallPositions)
             );
         }, settings.duckSettings.duckTimeToPassBlock);
-    }, []);
+    }, [settings, wallPositions]);
 
     return (
         <div className={styles.map}>
